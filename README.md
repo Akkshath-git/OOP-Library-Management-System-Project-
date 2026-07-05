@@ -17,12 +17,12 @@ This is a Library Management System built using C++ and Object-Oriented Programm
 - Abstraction
 - Inheritance
 - Polymorphism
-- File Handling (if used)
+- File Handling 
 
 ## 🛠️ Tech Stack
 - C++
 - Object-Oriented Programming (OOP)
-- STL (if used)
+- STL 
 
 ## ▶️ How to Run
 1. Compile the code:
