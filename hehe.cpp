@@ -1,189 +1,178 @@
-/**
- * Object-Oriented Library System
- * C++ Programming Fundamentals Capstone Project
- * 
- * This file provides a complete implementation of a library management system
- * using object-oriented programming, smart pointers, and exception handling in C++.
- */
-
 #include <iostream>
 #include <string>
-#include <vector>
 #include <memory>
 #include <stdexcept>
-#include <algorithm>
-#include <map>
-#include <chrono>
-#include <iomanip>
-#include <functional>
-#include <sstream>
-#include <unordered_map>
-#include <set>
 
-//===================================================================
-// Exception classes
-//===================================================================
+using namespace std;
 
-/**
- * Base exception class for library-related errors
- */
-class LibraryException : public std::runtime_error {
+
+// Custom Exception Classes
+
+
+class LibraryException : public runtime_error {
 public:
-    LibraryException(const std::string& message) : std::runtime_error(message) {}
+    LibraryException(string message) : runtime_error(message) {}
 };
 
-/**
- * Exception thrown when an item is not found
- */
-class ItemNotFoundException : public LibraryException {
-public:
-    ItemNotFoundException(const std::string& id) 
-        : LibraryException("Item not found: " + id) {}
-};
-
-/**
- * Exception thrown when a patron is not found
- */
-class PatronNotFoundException : public LibraryException {
-public:
-    PatronNotFoundException(const std::string& id) 
-        : LibraryException("Patron not found: " + id) {}
-};
-
-/**
- * Exception thrown when a checkout operation fails
- */
 class CheckoutException : public LibraryException {
 public:
-    CheckoutException(const std::string& message) 
-        : LibraryException("Checkout error: " + message) {}
+    CheckoutException(string message)
+        : LibraryException("Checkout Error: " + message) {}
 };
 
-/**
- * Exception thrown when a return operation fails
- */
 class ReturnException : public LibraryException {
 public:
-    ReturnException(const std::string& message) 
-        : LibraryException("Return error: " + message) {}
+    ReturnException(string message)
+        : LibraryException("Return Error: " + message) {}
 };
 
-/**
- * Exception thrown when validation fails
- */
-class ValidationException : public LibraryException {
-public:
-    ValidationException(const std::string& message) 
-        : LibraryException("Validation error: " + message) {}
-};
 
-//===================================================================
-// Library Item Classes
-//===================================================================
+// Base Class
 
-/**
- * Base class for all library items
- */
+
 class LibraryItem {
 private:
-    std::string id_;
-    std::string title_;
-    bool available_;
-    
+    string id;
+    string title;
+    bool available;
+
 protected:
-    double dailyFine_;
-    int maxLoanDays_;
+    double dailyFine;
+    int maxLoanDays;
 
 public:
-    // Constructor
-    LibraryItem(std::string id, std::string title)
-        : id_(std::move(id)), title_(std::move(title)), available_(true),
-          dailyFine_(0.0), maxLoanDays_(0)
-    {}
-    
-    // Virtual destructor
-    virtual ~LibraryItem() = default;
-    
-    // Getters
-    std::string getId() const { return id_; }
-    std::string getTitle() const { return title_; }
-    bool isAvailable() const { return available_; }
-    int getMaxLoanDays() const { return maxLoanDays_; }
-    double getDailyFine() const { return dailyFine_; }
-    
-    // Setters
-    void setAvailable(bool available) { available_ = available; }
-    
-    // Pure virtual methods
-    virtual std::string getItemType() const = 0;
-    virtual double calculateFine(int daysOverdue) const = 0;
-    virtual std::string getDetails() const = 0;
-    
-    // Common functionality
-    void checkOut() {
-        if (!available_) {
-            throw CheckoutException("Item is not available for checkout: " + id_);
-        }
-        available_ = false;
+    LibraryItem(string itemId, string itemTitle) {
+        id = itemId;
+        title = itemTitle;
+        available = true;
+        dailyFine = 0;
+        maxLoanDays = 0;
     }
-    
-    void returnItem() {
-        if (available_) {
-            throw ReturnException("Item is not checked out: " + id_);
+
+    virtual ~LibraryItem() {}
+
+    // Getters
+    string getId() {
+        return id;
+    }
+
+    string getTitle() {
+        return title;
+    }
+
+    bool isAvailable() {
+        return available;
+    }
+
+    // Pure Virtual Functions
+    virtual string getItemType() = 0;
+    virtual double calculateFine(int daysOverdue) = 0;
+    virtual string getDetails() = 0;
+
+    // Checkout Function
+    void checkOut() {
+        if (!available) {
+            throw CheckoutException("Item is already checked out.");
         }
-        available_ = true;
+
+        available = false;
+    }
+
+    // Return Function
+    void returnItem() {
+        if (available) {
+            throw ReturnException("Item is already available.");
+        }
+
+        available = true;
     }
 };
 
-/**
- * Book class - derives from LibraryItem
- */
+
+// Derived Class : Book
+
+
 class Book : public LibraryItem {
 private:
-    std::string author_;
-    std::string isbn_;
-    std::string genre_;
-    int pageCount_;
-    int publishYear_;
-    
+    string author;
+    string isbn;
+    string genre;
+    int pageCount;
+    int publishYear;
+
 public:
-    Book(std::string id, std::string title, std::string author, std::string isbn, std::string genre, int pageCount, int publishYear)
-        : LibraryItem(std::move(id), std::move(title)), author_(std::move(author)), isbn_(std::move(isbn)), genre_(std::move(genre)), pageCount_(pageCount), publishYear_(publishYear) {
-        dailyFine_ = 0.5;
-        maxLoanDays_ = 14;
+    Book(string id,
+         string title,
+         string authorName,
+         string bookISBN,
+         string bookGenre,
+         int pages,
+         int year)
+        : LibraryItem(id, title) {
+
+        author = authorName;
+        isbn = bookISBN;
+        genre = bookGenre;
+        pageCount = pages;
+        publishYear = year;
+
+        dailyFine = 0.5;
+        maxLoanDays = 14;
     }
-    
-    std::string getItemType() const override {
+
+    string getItemType() override {
         return "Book";
     }
-    
-    double calculateFine(int daysOverdue) const override {
-        return daysOverdue * dailyFine_;
+
+    double calculateFine(int daysOverdue) override {
+        return daysOverdue * dailyFine;
     }
-    
-    std::string getDetails() const override {
-        return "Author: " + author_ + ", ISBN: " + isbn_ + ", Genre: " + genre_ + ", Page Count: " + std::to_string(pageCount_) + ", Publish Year: " + std::to_string(publishYear_);
+
+    string getDetails() override {
+        return "Author: " + author +
+               ", ISBN: " + isbn +
+               ", Genre: " + genre +
+               ", Pages: " + to_string(pageCount) +
+               ", Year: " + to_string(publishYear);
     }
 };
+
+
+// Main Function
+
+
 int main() {
+
     try {
-        // Create a book instance
-        std::unique_ptr<LibraryItem> book = std::make_unique<Book>("B001", "The Great Gatsby", "F. Scott Fitzgerald", "9780743273565", "Fiction", 180, 1925);
-        
-        // Display book details
-        std::cout << "Item Type: " << book->getItemType() << std::endl;
-        std::cout << "Title: " << book->getTitle() << std::endl;
-        std::cout << "Details: " << book->getDetails() << std::endl;
-        
-        // Check out the book
+
+        // Create a Book object using smart pointer
+        unique_ptr<LibraryItem> book =
+            make_unique<Book>(
+                "B001",
+                "The Great Gatsby",
+                "F. Scott Fitzgerald",
+                "9780743273565",
+                "Fiction",
+                180,
+                1925
+            );
+
+        // Display Book Information
+        cout << "Item Type : " << book->getItemType() << endl;
+        cout << "Book Title: " << book->getTitle() << endl;
+        cout << "Book Info : " << book->getDetails() << endl;
+
+        // Checkout
         book->checkOut();
-        std::cout << "Checked out the book." << std::endl;
-        
-        // Attempt to check out again (should throw an exception)
+        cout << "\nBook checked out successfully!" << endl;
+
+        // Checkout Again (Throws Exception)
         book->checkOut();
-    } catch (const LibraryException& e) {
-        std::cerr << e.what() << std::endl;
+
     }
-    
+    catch (LibraryException &e) {
+        cout << e.what() << endl;
+    }
+
     return 0;
 }
